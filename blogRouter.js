@@ -9,10 +9,8 @@ router.post(
   "/add",
   authMiddleware,
   // check("title", "Title can not be empty string").notEmpty(),
-  // check("content", "Content can not be empty string").notEmpty(),
   controller.addPost
 );
-// router.get("/all-posts", authMiddleware, controller.getAllPosts);
-
+router.get("/get-all", authMiddleware, controller.getAll);
 
 module.exports = router;
