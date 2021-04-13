@@ -2,16 +2,16 @@
 
 All requests must have JWT token in header's Authorization field as `Bearer ${jwt}` string. If no token provided - auth middleware will return access err message.
 
-/auth/registration
+POST: `/auth/registration`
 Register new user, if such username already exists - deny.
-POST: username and password.
+username and password.
 
-/auth/login
+POST: `/auth/login`
 Logg in if such user exists and provided password is correct.
-POST: username and password
+username and password
 
-/auth/users
-GET: Admin-only request type. Provides list of registered users.
+GET: `/auth/users`
+Admin-only request type. Provides list of registered users.
 
 ---
 
@@ -19,8 +19,14 @@ GET: Admin-only request type. Provides list of registered users.
 
 All requests must have JWT token in header's Authorization field as `Bearer ${jwt}` string. If no token provided - auth middleware will return access err message.
 
-/blog/add
-POST: Add new post. Req body should contain props: data, title &content props.
+POST: `/blog/add`
+Add new post. Req body should contain props: data, title &content props.
 
-/blog/get-all
-GET: Get all posts for user. User selects in DB by JWT's username prop. 
+GET: `/blog/get-all`
+Get all user posts. User selects in DB by JWT's username prop.
+
+PUT: `/blog/edit`
+Edit chosen post. Req body should contain props: PostId, data, title & content props.
+
+DELETE: `/blog/delete`
+Delete chosen post. Req body should contain PostId in string format.

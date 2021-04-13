@@ -1,20 +1,24 @@
 const { validationResult } = require("express-validator");
 const UserContent = require("./models/UserContent");
 const Post = require("./models/Post");
-
-const findUserContent = async (user) => {
-  const { username } = user;
-  return await UserContent.findOne({ author: username });
-};
+const { findOne } = require("./models/UserContent");
 
 class blogController {
   async addPost(req, res) {
     try {
-      const post = new Post(req.body);
-      const userContent = findUserContent(req.user);
+      const { username } = req.user;
+      const { date, title, content } = req.body;
+      const userContent = await UserContent.findOne({ username });
+      const post = new Post({
+        PostId: "",
+        date,
+        title,
+        content,
+      });
+      post.PostId = post._id.toString();
       if (!userContent) {
         await UserContent.create({
-          author: username,
+          username,
           posts: [post],
         });
       } else {
@@ -22,26 +26,68 @@ class blogController {
           posts: [...userContent.posts, post],
         });
       }
-      res.json("Post has been saved");
+      res.status(200).json("Post has been saved");
     } catch (e) {
       console.log(e);
     }
   }
   async getAll(req, res) {
-    const userContent = await findUserContent(req.user);
+    const { username } = req.user;
+    const userContent = await UserContent.findOne({ username });
+
     if (!userContent) {
-      res.json("No entries found");
+      res.status(400).json("No entries found");
     }
     console.log(userContent);
     res.json(userContent.posts);
   }
-  async editOne(req, res) {
-    const { id } = res.body;
-    const userContent = findUserContent(req.user);
-    console.log(userContent.posts.findById(id));
+  async edit(req, res) {
+    try {
+      const { PostId, date, title, content } = req.body;
+      const { username } = req.user;
+      const userContent = await UserContent.findOne({ username });
+
+      const idx = userContent.posts.findIndex((post) => {
+        return post.PostId === PostId;
+      });
+      if (idx < 0) {
+        res.status(400).json("Post not found, pls refresh your page");
+      }
+      const newPostsList = [...userContent.posts];
+      newPostsList[idx] = new Post({ date, title, content });
+      newPostsList[idx].PostId = newPostsList[idx]._id.toString();
+
+      console.log(newPostsList);
+      await userContent.update({
+        posts: newPostsList,
+      });
+      res.status(200).json("Post updated");
+    } catch (e) {
+      console.log(e);
+    }
   }
   async deleteOne(req, res) {
-    const userContent = findUserContent(req.user);
+    try {
+      const { PostId } = req.body;
+      const { username } = req.user;
+      const userContent = await UserContent.findOne({ username });
+      const idx = userContent.posts.findIndex((post) => {
+        return post.PostId === PostId;
+      });
+      if (idx < 0) {
+        res.status(400).json("Post not found, pls refresh your page");
+      }
+      const newPostsList = [
+        ...userContent.posts.slice(0, idx),
+        ...userContent.posts.slice(idx + 1),
+      ];
+      await userContent.update({
+        posts: newPostsList,
+      });
+      res.status(200).json("Post successfully deleted");
+    } catch (e) {
+
+    }
   }
 }
 
